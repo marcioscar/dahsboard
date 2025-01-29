@@ -311,9 +311,7 @@ resultado_diario['Receitas'] = resultado_diario['Total Receitas'].cumsum()
 rec_des_grafico = px.line(resultado_diario, x='data', y=['Despesas', 'Receitas'],
                           labels={'value': 'Valor', 'variable': 'Tipo', 'data': 'Data'},
                           title=f"Resultado: {formatar_moeda(mes_atual_rec-mes_atual_desp)}",
-                          color_discrete_map={
-                            'Total despesas acumuladas': 'orange',  # Cor da linha para Total despesas acumuladas
-                             }
+                          
                           )
 
 # Atualizar o eixo x para exibir o formato desejado
