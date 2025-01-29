@@ -8,7 +8,7 @@ import pandas as pd
 import locale
 import plotly.express as px
 import calendar
-from streamlit_extras.metric_cards import style_metric_cards
+
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
