@@ -304,11 +304,11 @@ resultado_diario = df_mes_pedido_rec_desp.groupby(df_mes_pedido_rec_desp['data']
 resultado_diario.columns = ['data', 'Total despesas', 'Total Receitas']
 
 # Calcular a soma acumulada dos valores diários
-resultado_diario['Total despesas acumuladas'] = resultado_diario['Total despesas'].cumsum()
-resultado_diario['Total Receitas acumuladas'] = resultado_diario['Total Receitas'].cumsum()
+resultado_diario['Despesas'] = resultado_diario['Total despesas'].cumsum()
+resultado_diario['Receitas'] = resultado_diario['Total Receitas'].cumsum()
 
 # Criar o gráfico de linhas com valores acumulados
-rec_des_grafico = px.line(resultado_diario, x='data', y=['Total despesas acumuladas', 'Total Receitas acumuladas'],
+rec_des_grafico = px.line(resultado_diario, x='data', y=['Despesas', 'Receitas'],
                           labels={'value': 'Valor', 'variable': 'Tipo', 'data': 'Data'},
                           title=f"Resultado: {formatar_moeda(mes_atual_rec-mes_atual_desp)}",
                           color_discrete_map={
