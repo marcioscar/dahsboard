@@ -14,6 +14,7 @@ matplotlib = "*"
 streamlit-extras = "*"
 
 [dev-packages]
+ipykernel = "*"
 
 [requires]
 python_version = "3.13"
