@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-streamlit = "*"
 watchdog = "*"
 pymongo = "*"
 python-dotenv = "*"
@@ -12,6 +11,7 @@ plotly = "*"
 numpy = "*"
 matplotlib = "*"
 streamlit-extras = "*"
+streamlit = "*"
 
 [dev-packages]
 ipykernel = "*"

@@ -14,7 +14,7 @@ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 st.set_page_config(page_title="Quattor Dashboard", page_icon="icon.png", layout="wide")
 
 try:
-    # start example code here
+    
     load_dotenv()
     uri = os.getenv("DATABASE_URL")
     client = MongoClient(uri, server_api=pymongo.server_api.ServerApi(
@@ -29,7 +29,13 @@ receitas = db["receitas"]
 data_rec = receitas.find().limit(500)
 
 despesas = db["despesas"]
-data_desp = despesas.find().limit(1000)
+
+# Criar o filtro para despesas a partir de 2025
+filtro = {
+    "data": {"$gte": datetime(2025, 1, 1)}  # Data maior ou igual a 1 de janeiro de 2025
+}
+# Executar a consulta com o filtro e o limite
+data_desp = despesas.find(filtro).limit(1500)
 
 salarios = db["folha"]
 # data_sal = salarios.find()
@@ -68,11 +74,11 @@ sal_modalidades = [
 
 
 # Executar o pipeline de agregação
-resultado = list(salarios.aggregate(pipeline))  # Convertendo para uma lista
+resultado_sal = list(salarios.aggregate(pipeline))  # Convertendo para uma lista
 sal_modalidades = pd.DataFrame(list(salarios.aggregate(sal_modalidades)))  
 
 # Converter o resultado em um DataFrame do pandas
-total_salarios = pd.DataFrame(resultado)
+total_salarios = pd.DataFrame(resultado_sal)
 total_salarios.rename(columns={"_id": "referencia"}, inplace=True)
 
 df_rec =  pd.DataFrame(list(data_rec))
@@ -138,7 +144,7 @@ mes_selecionado = st.sidebar.selectbox(
 # Extrair o número do mês selecionado
 numero_mes_selecionado = mes_selecionado[0]
 
-ano = 2024
+# ano = 2024
 #receitas 
 df_mes_pedido_rec = df_rec[filtro_mes(numero_mes_selecionado, df_rec) & filtro_ano(int(ano_selecionado),df_rec)]
 df_mes_anterior_rec = df_rec[filtro_mes(numero_mes_selecionado-1, df_rec) & filtro_ano(int(ano_selecionado), df_rec)]
@@ -156,6 +162,9 @@ mes_anterior_desp = df_mes_anterior_desp['valor'].sum()
 mes_atual_desp = df_mes_pedido_desp['valor'].sum()
 
 nome_mes_atual = calendar.month_abbr[numero_mes_selecionado].lower()
+
+
+
 
 if numero_mes_selecionado == 1:
     nome_mes_anterior = calendar.month_abbr[12].lower()
@@ -196,53 +205,59 @@ df_merged_salario['diferenca'] = df_merged_salario['diferenca'].apply(formatar_d
 
 # CSS para ajustar a fonte do metric
 
-
-
-
 container = st.container(border=True)
 col1, col2,col3 = st.columns(3)
 
+
 col1.metric(label="Receitas", value=f"R$ {formatar_moeda(mes_atual_rec)}", delta=formatar_moeda(mes_atual - mes_anterior_rec), border=True )
-col2.metric(label="Despesas + Salários", value=f"R$ {formatar_moeda(mes_atual_desp)}", delta=formatar_moeda(mes_atual - mes_anterior_desp),border=True)
+col2.metric(label="Despesas + Salários", value=f"R$ {formatar_moeda(mes_atual_desp)}", delta=formatar_moeda(mes_atual_desp - mes_anterior_desp),border=True)
 col3.metric(label="Salários", value=f"R$ {formatar_moeda(total_salarios_mes)}", delta=formatar_moeda(total_salarios_mes - total_salarios_mes_anterior), border=True)
 
 
+# Agrupar e somar os valores por 'conta' no DataFrame do mês atual
+df_mes_pedido_desp_agrupado = df_mes_pedido_desp.groupby(['conta'])['valor'].sum().reset_index()
+df_mes_pedido_desp_agrupado.rename(columns={'valor': 'valor_atual'}, inplace=True)
 
-df_merged = df_mes_pedido_desp.merge(df_mes_anterior_desp, on='descricao', how='left', suffixes=('_atual', '_anterior'))
-df_merged['diferenca'] = df_merged['valor_atual'] - df_merged['valor_anterior']
+# Agrupar e somar os valores por 'conta' no DataFrame do mês anterior
+df_mes_anterior_desp_agrupado = df_mes_anterior_desp.groupby(['conta'])['valor'].sum().reset_index()
+df_mes_anterior_desp_agrupado.rename(columns={'valor': 'valor_anterior'}, inplace=True)
+
+# Fazer o merge dos DataFrames agrupados por 'conta'
+df_merged_conta = df_mes_pedido_desp_agrupado.merge(df_mes_anterior_desp_agrupado, on='conta', how='left')
+
+# Calcular a diferença
+df_merged_conta['diferenca'] = df_merged_conta['valor_atual'] - df_merged_conta['valor_anterior'].fillna(0)
+
+# Exibir o resultado
+df_merged_conta['valor_atual'] = df_merged_conta['valor_atual'].apply(formatar_moeda)
+df_merged_conta['valor_anterior'] = df_merged_conta['valor_anterior'].apply(formatar_moeda)
+df_merged_conta['diferenca'] = df_merged_conta['diferenca'].apply(formatar_diferenca)
+df_merged_conta.rename(columns={'conta':'Conta','valor_anterior': 'Valor Anterior', 'valor_atual': 'Valor Atual', 'diferenca':'Diferença'}, inplace=True)
+df_merged_conta.set_index('Conta', inplace=True)
 
 
-df_grouped = df_merged.groupby(['conta_atual'])[['valor_atual', 'diferenca']].sum()
-df_grouped['valor_atual'] = df_grouped['valor_atual'].apply(formatar_moeda)
-df_grouped['diferenca'] = df_grouped['diferenca'].apply(formatar_diferenca)
-# df_grouped.rename(columns={'conta_atual':'Conta', 'valor_atual': 'Valor'}) 
+# df_merged = df_mes_pedido_desp.merge(df_mes_anterior_desp, on='descricao', how='left', suffixes=('_atual', '_anterior'))
+# df_merged['diferenca'] = df_merged['valor_atual'] - df_merged['valor_anterior']
 
-df_grouped.style.highlight_between(left=0, right=100, color="yellow")
+
+# df_grouped_errado = df_merged.groupby(['conta_atual'])[['valor_atual', 'diferenca']].sum()
+# df_grouped_errado
+
+df_grouped = df_mes_pedido_desp.groupby(['conta'])[['valor']].sum()
+df_grouped['valor'] = df_grouped['valor'].apply(formatar_moeda)
+# df_grouped['diferenca'] = df_grouped['diferenca'].apply(formatar_diferenca)
+
 
 col1, col2 = st.columns(2)
-# with col1:
-#     with st.expander('Receitas'):
-#         st.dataframe(
-#             df_mes_pedido_rec.groupby(['forma'])['valor'].sum().apply(formatar_moeda),use_container_width=True
-#         )
-with col1: 
+
+with col2: 
     with st.expander('Despesas'):
         st.dataframe(
-            df_grouped.rename(columns={'conta_atual':'Conta', 'valor_atual': 'Valor'})
+            df_merged_conta.rename(columns={'conta_atual':'Conta', 'valor_atual': 'Valor'})
             # df_mes_pedido_desp.groupby(['conta'])['valor'].sum().apply(formatar_moeda),use_container_width=True
         )        
-# with col3:
-#     with st.expander('Salários por Modalidades'):
-#         st.dataframe(
-#             sal_modalidades_filtrado[['modalidade', 'total_salario']]
-#             .rename(columns={'modalidade': 'Modalidade', 'total_salario': 'Total'})
-#             .assign(Total=sal_modalidades_filtrado['total_salario'].apply(formatar_moeda))
-#             .sort_values(by='Total')
-#             .set_index('Modalidade'), 
-#             use_container_width=True
-#         )
 
-with col2:
+with col1:
     with st.expander('Salários por Modalidades'):
         st.dataframe(
             df_merged_salario[['modalidade', 'total_salario_atual', 'diferenca']]
@@ -355,3 +370,5 @@ st.plotly_chart(rec_des_grafico, use_container_width=True)
 
 st.sidebar.divider()
 st.sidebar.metric(label="Resultado", value=f"R$ {formatar_moeda(mes_atual_rec-mes_atual_desp)}", border=True )
+
+
