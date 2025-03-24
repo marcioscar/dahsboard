@@ -9,12 +9,54 @@ import locale
 import plotly.express as px
 import calendar
 
-
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 st.set_page_config(page_title="Quattor Dashboard", page_icon="icon.png", layout="wide")
 
-try:
+def tratar_valor_liquido(valor):
+    """
+    Função para tratar um único valor da coluna 'VALOR LÍQUIDO'.
+
+    Args:
+        valor (str): O valor a ser tratado.
+
+    Returns:
+        float or NaN: O valor convertido para float ou NaN se não for possível converter.
+    """
+    if not isinstance(valor, str):
+        return float('nan')  # Retorna NaN se não for uma string
     
+    valor = valor.strip()  # Remove espaços em branco no início e no fim
+    if not valor:
+        return float('nan')  # Retorna NaN se a string estiver vazia
+
+    valor = valor.replace(".", "") # Remove pontos de milhar
+    valor = valor.replace(",", ".")  # Substitui vírgula por ponto
+
+    try:
+        return round(float(valor), 2)
+    except ValueError:
+        return float('nan')  # Retorna NaN se a conversão falhar
+
+
+
+extrato = pd.read_csv("dados/extrato.txt", sep=';', decimal=',')
+resultado_extrato = extrato.groupby("data")["valor"].sum().reset_index()
+
+stone = pd.read_csv("dados/stone.csv", sep=';',decimal=',', usecols=['CATEGORIA','DATA DE VENCIMENTO','VALOR LÍQUIDO'], dtype=str)
+stone["VALOR LÍQUIDO"] = stone["VALOR LÍQUIDO"].apply(tratar_valor_liquido)
+stone.dropna(subset=['VALOR LÍQUIDO'], inplace=True)
+stone["VALOR LÍQUIDO"] = stone["VALOR LÍQUIDO"].astype(float)
+resultado_stone = stone.groupby("DATA DE VENCIMENTO")["VALOR LÍQUIDO"].sum().reset_index()
+
+resultado_extrato = resultado_extrato.rename(columns={"data": "DATA DE VENCIMENTO"})
+
+# Fazendo o merge com base na "DATA DE VENCIMENTO"
+df_final = pd.merge(resultado_stone, resultado_extrato, on="DATA DE VENCIMENTO", how="outer")
+# Criando a coluna "DIFERENÇA" (subtraindo valor de VALOR LÍQUIDO)
+df_final["DIFERENÇA"] = df_final["valor"] - df_final["VALOR LÍQUIDO"]
+
+
+try:
     load_dotenv()
     uri = os.getenv("DATABASE_URL")
     client = MongoClient(uri, server_api=pymongo.server_api.ServerApi(
@@ -25,10 +67,33 @@ except Exception as e:
         "Erro: ", e)
 
 db = client["quattor"]
+
 receitas = db["receitas"]
 data_rec = receitas.find().limit(500)
-
 despesas = db["despesas"]
+
+def incluir_receitas(extrato):
+    # 3. Transformar os dados no formato desejado
+    dados_para_inserir = []
+    for _, row in extrato.iterrows():
+        documento = {
+            "data": datetime.strptime(row["data"], "%d/%m/%Y"),  # Converte string para date
+            "forma": row["descricao"],  # Renomeia 'descricao' para 'forma'
+            "valor": row["valor"],
+            "status": "recebido",  # Campo adicional fixo
+            "lancamento": "quattor"  # Campo adicional fixo
+        }
+        dados_para_inserir.append(documento)
+
+    
+    # 4. Inserir no MongoDB
+    try:
+        resultado = receitas.insert_many(dados_para_inserir)
+        print(f"{len(resultado.inserted_ids)} documentos inseridos com sucesso!")
+    except Exception as e:
+        print(f"Erro ao inserir: {e}")
+
+
 
 # Criar o filtro para despesas a partir de 2025
 filtro = {
@@ -85,7 +150,11 @@ df_rec =  pd.DataFrame(list(data_rec))
 df_desp =  pd.DataFrame(list(data_desp))
 # df_sal =  pd.DataFrame(list(data_sal))
 
-rec_desp = pd.merge(df_desp, df_rec, on="data", how="outer",suffixes=("_desp", "_rec"))[['data', 'valor_desp', 'valor_rec']]
+df_desp_agrupado = df_desp.groupby(['data'])['valor'].sum().reset_index()
+df_rec_agrupado = df_rec.groupby(['data'])['valor'].sum().reset_index()
+
+
+rec_desp = pd.merge(df_desp_agrupado, df_rec_agrupado, on="data", how="outer",suffixes=("_desp", "_rec"))[['data', 'valor_desp', 'valor_rec']]
 
 
 def filtro_mes(mes,df):
@@ -144,6 +213,22 @@ mes_selecionado = st.sidebar.selectbox(
 # Extrair o número do mês selecionado
 numero_mes_selecionado = mes_selecionado[0]
 
+arquivo = st.sidebar.file_uploader(
+    "Carregue o extrato bancário",
+    type=["csv", "txt"]  # Tipos permitidos
+)
+if arquivo is not None:
+        caminho_arquivo = os.path.join("dados", arquivo.name)
+        # 4. Salvar o arquivo no disco
+        with open(caminho_arquivo, "wb") as f:
+            f.write(arquivo.getbuffer()) 
+
+
+if st.sidebar.button('atualizar'):
+   extrato_novo = pd.read_csv("dados/"+ arquivo.name, sep=';', decimal=',') 
+   incluir_receitas(extrato_novo)
+   
+
 # ano = 2024
 #receitas 
 df_mes_pedido_rec = df_rec[filtro_mes(numero_mes_selecionado, df_rec) & filtro_ano(int(ano_selecionado),df_rec)]
@@ -191,9 +276,9 @@ total_salarios_mes = tot_mes.iloc[0] if not tot_mes.empty else 0
 total_salarios_mes_anterior = tot_mes_anterior.iloc[0] if not tot_mes_anterior.empty else 0
 def formatar_diferenca(valor):
     if valor > 0:
-        return f"❗️ {valor:,.2f}"  # Seta para cima
+        return f"🔴 {valor:,.2f}"  # Seta para cima
     elif valor < 0:
-        return f"⌖ {(valor):,.2f}"  # Seta para baixo e valor absoluto
+        return f"🔵 {(valor):,.2f}"  # Seta para baixo e valor absoluto
     return f"{valor:,.2f}"  # Caso seja zero, mantém normal
 
 
@@ -372,3 +457,12 @@ st.sidebar.divider()
 st.sidebar.metric(label="Resultado", value=f"R$ {formatar_moeda(mes_atual_rec-mes_atual_desp)}", border=True )
 
 
+
+# def main():
+#     with st.sidebar:
+#         pass
+#     #     sidebar()   
+#     # pagina_chat()
+
+# if __name__ == "__main__":
+#     main()
