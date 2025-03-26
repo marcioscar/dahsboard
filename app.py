@@ -11,51 +11,9 @@ import calendar
 
 def Dashboard():
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-    # st.set_page_config(page_title="Quattor Dashboard", page_icon="icon.png", layout="wide")
-
-    def tratar_valor_liquido(valor):
-        """
-        Função para tratar um único valor da coluna 'VALOR LÍQUIDO'.
-
-        Args:
-            valor (str): O valor a ser tratado.
-
-        Returns:
-            float or NaN: O valor convertido para float ou NaN se não for possível converter.
-        """
-        if not isinstance(valor, str):
-            return float('nan')  # Retorna NaN se não for uma string
-        
-        valor = valor.strip()  # Remove espaços em branco no início e no fim
-        if not valor:
-            return float('nan')  # Retorna NaN se a string estiver vazia
-
-        valor = valor.replace(".", "") # Remove pontos de milhar
-        valor = valor.replace(",", ".")  # Substitui vírgula por ponto
-
-        try:
-            return round(float(valor), 2)
-        except ValueError:
-            return float('nan')  # Retorna NaN se a conversão falhar
-
-
-
     extrato = pd.read_csv("dados/extrato.txt", sep=';', decimal=',')
     resultado_extrato = extrato.groupby("data")["valor"].sum().reset_index()
-
-    stone = pd.read_csv("dados/stone.csv", sep=';',decimal=',', usecols=['CATEGORIA','DATA DE VENCIMENTO','VALOR LÍQUIDO'], dtype=str)
-    stone["VALOR LÍQUIDO"] = stone["VALOR LÍQUIDO"].apply(tratar_valor_liquido)
-    stone.dropna(subset=['VALOR LÍQUIDO'], inplace=True)
-    stone["VALOR LÍQUIDO"] = stone["VALOR LÍQUIDO"].astype(float)
-    resultado_stone = stone.groupby("DATA DE VENCIMENTO")["VALOR LÍQUIDO"].sum().reset_index()
-
     resultado_extrato = resultado_extrato.rename(columns={"data": "DATA DE VENCIMENTO"})
-
-    # Fazendo o merge com base na "DATA DE VENCIMENTO"
-    df_final = pd.merge(resultado_stone, resultado_extrato, on="DATA DE VENCIMENTO", how="outer")
-    # Criando a coluna "DIFERENÇA" (subtraindo valor de VALOR LÍQUIDO)
-    df_final["DIFERENÇA"] = df_final["valor"] - df_final["VALOR LÍQUIDO"]
-
 
     try:
         load_dotenv()
@@ -461,13 +419,11 @@ def Dashboard():
     # Exibir o gráfico no Streamlit
     st.plotly_chart(rec_des_grafico, use_container_width=True) 
 
-
     st.sidebar.divider()
     st.sidebar.metric(label="Resultado", value=f"R$ {formatar_moeda(mes_atual_rec-mes_atual_desp)}", border=True )
 
 
 with st.sidebar:
-
     st.set_page_config(page_title="Quattor Dashboard", page_icon="icon.png", layout="wide")
     
     anos = ['2024','2025','2026','2027']
