@@ -2,21 +2,20 @@ import pandas as pd
 import streamlit as st
 import calendar
 from datetime import datetime
+from db import df_desp, df_rec
 
 if 'df_desp' not in st.session_state:
-    st.error('Dados não carregados. Favor entrar no Dashboard primeiro')
-    st.stop() 
+    desp = df_desp()
+else:
+    desp =st.session_state.df_desp  
 
 if 'df_rec' not in st.session_state:
-    st.error('Dados não carregados. Favor entrar no Dashboard primeiro')
-    st.stop() 
-
+    rec = df_rec()
+else:
+    rec =st.session_state.df_rec  
 
 tab1, tab2, tab3 = st.tabs(["Fluxo do Mes", "Fluxo Total", "Fluxo Projetado"])
 
-
-desp = st.session_state.df_desp
-rec = st.session_state.df_rec
 ano_selecionado = st.session_state.ano_selecionado
 numero_mes_selecionado = st.session_state.mes_selecionado[0]
 

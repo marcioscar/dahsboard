@@ -8,6 +8,7 @@ import pandas as pd
 import locale
 import plotly.express as px
 import calendar
+from db import conexao
 
 def Dashboard():
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -15,27 +16,17 @@ def Dashboard():
     resultado_extrato = extrato.groupby("data")["valor"].sum().reset_index()
     resultado_extrato = resultado_extrato.rename(columns={"data": "DATA DE VENCIMENTO"})
 
-    try:
-        load_dotenv()
-        uri = os.getenv("DATABASE_URL")
-        client = MongoClient(uri, server_api=pymongo.server_api.ServerApi(
-        version="1", strict=True, deprecation_errors=True))
-        # end example code here
-    except Exception as e:
-        raise Exception(
-            "Erro: ", e)
-
-    db = client["quattor"]
-
+    if 'db' not in st.session_state:
+        db = conexao() 
+    else:
+        db = st.session_state.db   
+            
     receitas = db["receitas"]
     filtro = {
         "data": {"$gte": datetime(2025, 1, 1)}  # Data maior ou igual a 1 de janeiro de 2025
     }
     data_rec = receitas.find(filtro)
-    
     despesas = db["despesas"]
-
-
 
     def incluir_receitas(extrato):
         # 3. Transformar os dados no formato desejado
@@ -114,13 +105,15 @@ def Dashboard():
     df_rec =  pd.DataFrame(list(data_rec))
     
     df_desp =  pd.DataFrame(list(data_desp))
+    # st.session_state.despesas = df_desp
     
     # df_sal =  pd.DataFrame(list(data_sal))
 
     df_desp_agrupado = df_desp.groupby(['data'])['valor'].sum().reset_index()
-    st.session_state.df_desp = df_desp_agrupado
+    # st.session_state.df_desp = df_desp_agrupado
+
     df_rec_agrupado = df_rec.groupby(['data'])['valor'].sum().reset_index()
-    st.session_state.df_rec = df_rec_agrupado
+    # st.session_state.df_rec = df_rec_agrupado
 
 
     rec_desp = pd.merge(df_desp_agrupado, df_rec_agrupado, on="data", how="outer",suffixes=("_desp", "_rec"))[['data', 'valor_desp', 'valor_rec']]
@@ -453,6 +446,6 @@ with st.sidebar:
         format_func=lambda x: x[1],  # Mostrar apenas o nome do mês
         index=mes_atual - 1, key="mes_selecionado"
     )
-pg = st.navigation([ Dashboard, "Fluxo_de_Caixa.py"])
+pg = st.navigation([ Dashboard, "Fluxo_de_Caixa.py", 'despesas.py'])
 
 pg.run()
