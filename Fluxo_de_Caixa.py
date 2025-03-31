@@ -144,10 +144,30 @@ for i in range(len(df_desp_rec_projetado)):
 df_desp_rec['Saldo do Dia'] = df_desp_rec['valor_rec'] - df_desp_rec['valor_desp']
 df_desp_rec_projetado['Saldo do Dia'] = df_desp_rec_projetado['valor_rec'] - df_desp_rec_projetado['valor_desp']
 
+
+df_comparacao = df_desp_rec[['data', 'Saldo']].merge(
+    df_desp_rec_projetado[['data', 'Saldo']], 
+    on='data', 
+    how='outer', 
+    suffixes=('_real', '_projetado')
+)
+
+df_comparacao['Realizado x Projetado'] = df_comparacao['Saldo_real'] - df_comparacao['Saldo_projetado']
+
+df_desp_rec = df_desp_rec.merge(
+    df_comparacao[['data', 'Realizado x Projetado']], 
+    on='data', 
+    how='left'
+)
+
+
+
 # Formatar as colunas
+
 df_desp_rec['Saldo'] = df_desp_rec['Saldo'].apply(formatar_diferenca)
 df_desp_rec['Saldo do Dia'] = df_desp_rec['Saldo do Dia'].apply(formatar_diferenca)
 df_desp_rec['Saldo Anterior'] = df_desp_rec['Saldo Anterior'].apply(formatar_diferenca)
+
 
 # Formatar as colunas projetado
 df_desp_rec_projetado['Saldo'] = df_desp_rec_projetado['Saldo'].apply(formatar_diferenca)
@@ -155,16 +175,15 @@ df_desp_rec_projetado['Saldo do Dia'] = df_desp_rec_projetado['Saldo do Dia'].ap
 df_desp_rec_projetado['Saldo Anterior'] = df_desp_rec_projetado['Saldo Anterior'].apply(formatar_diferenca)
 
 
-
-
 with tab1:
     # Filtrar por mês e ano
     desp_rec_mes = df_desp_rec[filtro_mes(numero_mes_selecionado, df_desp_rec) & filtro_ano(int(ano_selecionado), df_desp_rec)]
-    desp_rec_mes = desp_rec_mes.loc[:,['data', 'valor_rec', 'valor_desp', 'Saldo do Dia', 'Saldo']]
-    desp_rec_mes.columns = ["Data", "Receitas", "Despesas","Saldo do Dia", "Saldo"]
+    desp_rec_mes = desp_rec_mes.loc[:,['data', 'valor_rec', 'valor_desp', 'Saldo do Dia', 'Saldo', 'Realizado x Projetado']]
+    desp_rec_mes.columns = ["Data", "Receitas", "Despesas","Saldo do Dia", "Saldo", 'Realizado x Projetado']
 
     desp_rec_mes['Despesas'] = desp_rec_mes['Despesas'].apply(formatar_diferenca).apply(formatar_moeda)
     desp_rec_mes['Receitas'] = desp_rec_mes['Receitas'].apply(formatar_diferenca).apply(formatar_moeda)
+    desp_rec_mes['Realizado x Projetado'] = desp_rec_mes['Realizado x Projetado'].apply(formatar_diferenca).apply(formatar_moeda)
     desp_rec_mes['Saldo do Dia'] = desp_rec_mes['Saldo do Dia'].apply(formatar_moeda)
     desp_rec_mes['Saldo'] = desp_rec_mes['Saldo'].apply(formatar_moeda)
     desp_rec_mes["Data"] = desp_rec_mes["Data"].dt.strftime("%d/%m/%Y")
@@ -174,10 +193,11 @@ with tab1:
 
 with tab2:
     st.subheader("Fluxo de Caixa Completo")
-    df_desp_rec = df_desp_rec.loc[:,['data', 'valor_rec', 'valor_desp', 'Saldo do Dia', 'Saldo']]
-    df_desp_rec.columns = ["Data", "Receitas", "Despesas","Saldo do Dia", "Saldo"]
+    df_desp_rec = df_desp_rec.loc[:,['data', 'valor_rec', 'valor_desp', 'Saldo do Dia', 'Saldo', 'Realizado x Projetado']]
+    df_desp_rec.columns = ["Data", "Receitas", "Despesas","Saldo do Dia", "Saldo", 'Realizado x Projetado']
     df_desp_rec['Despesas'] = df_desp_rec['Despesas'].apply(formatar_diferenca).apply(formatar_moeda)
     df_desp_rec['Receitas'] = df_desp_rec['Receitas'].apply(formatar_diferenca).apply(formatar_moeda)
+    df_desp_rec['Realizado x Projetado'] = df_desp_rec['Realizado x Projetado'].apply(formatar_diferenca).apply(formatar_moeda)
     df_desp_rec['Saldo do Dia'] = df_desp_rec['Saldo do Dia'].apply(formatar_moeda)
     df_desp_rec['Saldo'] = df_desp_rec['Saldo'].apply(formatar_moeda)
     df_desp_rec["Data"] = df_desp_rec["Data"].dt.strftime("%d/%m/%Y")

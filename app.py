@@ -12,9 +12,9 @@ from db import conexao
 
 def Dashboard():
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-    extrato = pd.read_csv("dados/extrato.txt", sep=';', decimal=',')
-    resultado_extrato = extrato.groupby("data")["valor"].sum().reset_index()
-    resultado_extrato = resultado_extrato.rename(columns={"data": "DATA DE VENCIMENTO"})
+    # extrato = pd.read_csv("dados/extrato.txt", sep=';', decimal=',')
+    # resultado_extrato = extrato.groupby("data")["valor"].sum().reset_index()
+    # resultado_extrato = resultado_extrato.rename(columns={"data": "DATA DE VENCIMENTO"})
 
     if 'db' not in st.session_state:
         db = conexao() 
@@ -52,11 +52,15 @@ def Dashboard():
 
 
     # Criar o filtro para despesas a partir de 2025
-    filtro = {
-        "data": {"$gte": datetime(2025, 1, 1)}  # Data maior ou igual a 1 de janeiro de 2025
+    filtro_despesas = {
+        "data": {"$gte": datetime(2025, 1, 1)},  # Data maior ou igual a 1 de janeiro de 2025
+        "$or": [
+            {"pago": True},   # Registros onde pago é True
+            {"pago": {"$exists": False}}  # Registros onde pago não existe
+        ]
     }
     # Executar a consulta com o filtro e o limite
-    data_desp = despesas.find(filtro).limit(1500)
+    data_desp = despesas.find(filtro_despesas)
 
     salarios = db["folha"]
     # data_sal = salarios.find()

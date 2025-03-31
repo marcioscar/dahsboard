@@ -18,7 +18,6 @@ filtro_despesas = {
     ]
 }
 
-
 def conexao():
     try:
         load_dotenv()
@@ -31,7 +30,6 @@ def conexao():
     db = client["quattor"]
     st.session_state.db = db
     return  db
-
 
 def df_desp():
     db = conexao()
