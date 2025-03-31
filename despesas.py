@@ -26,6 +26,8 @@ filtro = {
     "pago": False  # Somente registros onde pago é False
 }
 # Executar a consulta com o filtro e o limite
+
+  
 data_desp = despesas.find(filtro)
 df_desp = pd.DataFrame(list(data_desp)).sort_values(by="data", ascending=True)
 df_desp['data'] = df_desp['data'].apply(formatar_data)
@@ -58,9 +60,18 @@ desp["Pagar"] = False
 
 # Criar DataFrame editável
 st.subheader("Despesas Abertas")
-dia = st.toggle('despesas do dia')
-if dia:
-    desp = desp[desp['data'] == datetime.now().strftime('%d-%m-%Y')]
+col1, col2 = st.columns(2)
+with col1:
+    todas = st.toggle('todas as despesas')
+    if todas:
+        st.write('passou')
+        filtro = {
+        "data": {"$gte": datetime(2025, 1, 1)}
+    } 
+with col2:
+    dia = st.toggle('despesas do dia')
+    if dia:
+        desp = desp[desp['data'] == datetime.now().strftime('%d-%m-%Y')]
     # desp = desp[desp['data'] == (datetime.now() + timedelta(days=1)).strftime('%d-%m-%Y')]
 
 # Criar uma cópia do DataFrame para exibição sem "_id" e "pago"
