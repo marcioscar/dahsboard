@@ -14,6 +14,19 @@ if 'db' not in st.session_state:
 else:
     db = st.session_state.db
 
+st.subheader("Despesas")
+tipo = st.selectbox('Selecione quais despesas', options=['Despesas Abertas', 'Todas as Despesas' ])
+
+if tipo == 'Despesas Abertas':
+    filtro = {
+    "data": {"$gte": datetime(2025, 1, 1)},  # Data maior ou igual a 1 de janeiro de 2025
+    "pago": False  # Somente registros onde pago é False
+} 
+else:
+    filtro = {
+    "data": {"$gte": datetime(2025, 1, 1)}
+} 
+    
 
 despesas = db["despesas"]
 def formatar_data(data):
@@ -21,11 +34,9 @@ def formatar_data(data):
 def formatar_moeda(valor):
         return locale.currency(valor, grouping=True, symbol=False)
 
-filtro = {
-    "data": {"$gte": datetime(2025, 1, 1)},  # Data maior ou igual a 1 de janeiro de 2025
-    "pago": False  # Somente registros onde pago é False
-}
+
 # Executar a consulta com o filtro e o limite
+
 
   
 data_desp = despesas.find(filtro)
@@ -53,25 +64,16 @@ def despesa():
         st.rerun()
 
 
-
-
 # Adicionar coluna de seleção
 desp["Pagar"] = False  
 
 # Criar DataFrame editável
-st.subheader("Despesas Abertas")
-col1, col2 = st.columns(2)
-with col1:
-    todas = st.toggle('todas as despesas')
-    if todas:
-        st.write('passou')
-        filtro = {
-        "data": {"$gte": datetime(2025, 1, 1)}
-    } 
-with col2:
-    dia = st.toggle('despesas do dia')
-    if dia:
-        desp = desp[desp['data'] == datetime.now().strftime('%d-%m-%Y')]
+
+
+
+dia = st.toggle('despesas do dia')
+if dia:
+    desp = desp[desp['data'] == datetime.now().strftime('%d-%m-%Y')]
     # desp = desp[desp['data'] == (datetime.now() + timedelta(days=1)).strftime('%d-%m-%Y')]
 
 # Criar uma cópia do DataFrame para exibição sem "_id" e "pago"
