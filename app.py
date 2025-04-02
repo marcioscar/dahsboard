@@ -1,8 +1,5 @@
 from datetime import datetime
 import streamlit as st
-from dotenv import load_dotenv
-from pymongo import MongoClient
-import pymongo
 import os
 import pandas as pd
 import locale
