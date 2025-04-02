@@ -17,7 +17,7 @@ filtro_despesas = {
         {"pago": {"$exists": False}}  # Registros onde pago não existe
     ]
 }
-
+@st.cache_resource
 def conexao():
     try:
         load_dotenv()

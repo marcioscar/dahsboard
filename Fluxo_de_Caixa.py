@@ -4,6 +4,8 @@ import calendar
 from datetime import datetime
 from db import df_desp, df_rec
 
+
+
 if 'df_desp' not in st.session_state:
     desp = df_desp()
 else:
@@ -189,6 +191,7 @@ with tab1:
     desp_rec_mes["Data"] = desp_rec_mes["Data"].dt.strftime("%d/%m/%Y")
 
     st.subheader("Fluxo de Caixa do Mês")
+    # interactive_table(desp_rec_mes,  scrollCollapse=True)
     st.dataframe(desp_rec_mes, use_container_width=True, height=500)
 
 with tab2:

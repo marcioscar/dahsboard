@@ -9,6 +9,7 @@ import locale
 from bson import ObjectId
 
 
+
 if 'db' not in st.session_state:
     db = conexao() 
 else:

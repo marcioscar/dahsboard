@@ -12,6 +12,7 @@ numpy = "*"
 matplotlib = "*"
 streamlit-extras = "*"
 streamlit = "*"
+itables = "*"
 
 [dev-packages]
 ipykernel = "*"
