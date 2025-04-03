@@ -447,6 +447,6 @@ with st.sidebar:
         format_func=lambda x: x[1],  # Mostrar apenas o nome do mês
         index=mes_atual - 1, key="mes_selecionado"
     )
-pg = st.navigation([ Dashboard, "Fluxo_de_Caixa.py", 'despesas.py'])
+pg = st.navigation([ Dashboard, "Fluxo_de_Caixa.py", 'Despesas.py', 'Folha.py'])
 
 pg.run()

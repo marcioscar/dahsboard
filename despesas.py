@@ -54,7 +54,6 @@ def despesa():
     conta = st.selectbox(
         'Selecione a Conta', 
         options=['Cancelamento','Comissão', 'Ecad', 'Fco', 'Gas', 'Impostos', 'Manutenção', 'Pessoal','Piscina', 'Pro-labore', 'Serviços' ], 
-        # key="despesa"
     )
     descricao = st.text_input('Descrição')
     valor = st.number_input('Valor',value=None )
@@ -94,7 +93,7 @@ col1, col2= st.columns(2)
 with col1:
     if st.button("Pagar Conta",icon="✅"):
         linha_selecionada = df_editado[df_editado["Pagar"] == True]
-
+    
         if linha_selecionada.empty:
             st.warning("Nenhuma linha foi selecionada!")
         else:

@@ -48,3 +48,17 @@ def df_rec():
     df_rec_agrupado = df_rec.groupby(['data'])['valor'].sum().reset_index()
     st.session_state.df_rec = df_rec_agrupado   
     return df_rec_agrupado
+
+def df_salario():
+    db = conexao()
+    folha = db["folha"]
+    funcionarios = folha.find().sort("nome", 1)
+    df_funcionarios = pd.DataFrame(list(funcionarios)) 
+    # df_rec_agrupado = df_rec.groupby(['data'])['valor'].sum().reset_index()
+    st.session_state.df_salario = df_funcionarios   
+    return df_funcionarios
+
+def folha():
+    db = conexao()
+    folha = db["folha"]
+    return folha
