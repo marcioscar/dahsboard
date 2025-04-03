@@ -3,6 +3,9 @@ import time
 from bson import ObjectId
 import streamlit as st
 from db import df_salario, folha
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
 
 folha = folha()
 
@@ -32,8 +35,12 @@ funcionarios["salarios"] = funcionarios["salarios"].apply(
 funcionarios["ultimos"] = funcionarios["salarios"].apply(
     lambda x: [item["valor"] for item in x][-3:] if isinstance(x, list) else []
 )
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown('#### Funcionários')
 
-pagos = st.toggle('Pagos')
+with col2:
+    pagos = st.toggle('Pagos')
 if pagos:
     funcionarios = funcionarios[funcionarios['pago'] == True]
     
@@ -55,6 +62,8 @@ funcionario = st.data_editor(funcionarios,column_config={
 
 
 nomes = funcionarios["nome"].to_list()
+total = funcionarios["valor"].sum()
+st.metric(label="Total Salários", value=f"R$ {locale.format_string('%.2f', total, grouping=True)}")
 
 
 @st.dialog("Novo salário")
@@ -66,8 +75,8 @@ def salario():
     )
     valor = st.number_input('Valor',value=None , min_value=0.01)
     data = datetime.combine(st.date_input('Data', format="DD/MM/YYYY"), datetime.min.time())
-    referencia = data.strftime('%b-%Y')
-    
+    referencia = data.strftime('%b-%Y').lower()
+
     if st.button("Cadastrar"):
         if valor is None or valor <= 0:
             st.error('Preencher o valor')
