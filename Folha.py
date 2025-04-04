@@ -114,6 +114,7 @@ def pagar():
             # Usar o índice da linha selecionada no DataFrame EDITADO para encontrar a linha correspondente no DataFrame ORIGINAL
             id_linha = funcionarios.loc[index, "_id"]
             nome_funcionario = funcionarios.loc[index, "nome"]
+            conta_funcionario = funcionarios.loc[index, "conta"]
             
             # Encontrar o último salário não pago
             ultimo_salario_nao_pago = None
@@ -126,7 +127,8 @@ def pagar():
                 id_salario = ultimo_salario_nao_pago["sal_id"]
                 valor_salario = ultimo_salario_nao_pago["valor"]
                 
-                st.write(nome_funcionario)
+                st.write(nome_funcionario ) 
+                st.write( conta_funcionario)
                 val_sal = st.number_input('Salário', value=valor_salario) 
                 
                 # Atualizar o status de pagamento
