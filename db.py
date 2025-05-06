@@ -1,3 +1,4 @@
+from bson import ObjectId
 from dotenv import load_dotenv
 import pandas as pd
 from pymongo import MongoClient
@@ -61,4 +62,24 @@ def df_salario():
 def folha():
     db = conexao()
     folha = db["folha"]
+    return folha
+
+def cadastrar_funcionario(nome, funcao, modalidade,conta):
+    db = conexao()
+    folha = db["folha"]
+    folha.insert_one({"nome": nome, "funcao": funcao, "modalidade": modalidade, "conta": conta})
+    return folha
+
+def edit_funcionario(id,nome, funcao, modalidade,conta):
+    db = conexao()
+    folha = db["folha"]
+    filtro = {"_id": ObjectId(id)}
+    folha.update_one(filtro, {"$set": {"nome": nome, "funcao": funcao, "modalidade": modalidade, "conta": conta}})
+    return folha
+    
+def apagar_funcionario(id):
+    db = conexao()
+    folha = db["folha"]
+    filtro = {"_id": ObjectId(id)}
+    folha.delete_one(filtro)
     return folha

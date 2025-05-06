@@ -1,14 +1,15 @@
-import streamlit as st
-import pandas as pd
-# desp = st.session_state.despesas
-# db = st.session_state.db
-from db import conexao
-from datetime import datetime, timedelta
+"""Módulo para gerenciamento de despesas da Quattor."""
+
 import time
 import locale
+from datetime import datetime
 from bson import ObjectId
 
-
+import streamlit as st
+import pandas as pd
+from db import conexao
+# desp = st.session_state.despesas
+# db = st.session_state.db
 
 if 'db' not in st.session_state:
     db = conexao() 
@@ -31,9 +32,11 @@ else:
 
 despesas = db["despesas"]
 def formatar_data(data):
-        return data.strftime('%d-%m-%Y')
+    """Formata uma data para o formato DD-MM-YYYY."""
+    return data.strftime('%d-%m-%Y')
 def formatar_moeda(valor):
-        return locale.currency(valor, grouping=True, symbol=False)
+    """Formata um valor numérico para o formato de moeda brasileira."""
+    return locale.currency(valor, grouping=True, symbol=False)
 
 
 # Executar a consulta com o filtro e o limite
@@ -51,6 +54,7 @@ desp = df_desp.drop(columns=['referencia', 'tipo', 'valor'])
 
 @st.dialog("Nova despesa")
 def despesa():
+    """Dialog para cadastro de novas despesas."""
     conta = st.selectbox(
         'Selecione a Conta', 
         options=['Cancelamento','Comissão', 'Ecad', 'Fco', 'Gas', 'Impostos', 'Manutenção', 'Pessoal','Piscina', 'Pro-labore', 'Serviços' ], 

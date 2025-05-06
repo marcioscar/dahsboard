@@ -1,0 +1,126 @@
+body {
+    font-family: "Roboto Medium", sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #ddd;
+    font-family: "Roboto Medium", sans-serif;
+}
+
+h2 {
+    color: #333;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+    margin-top: 30px;
+    font-family: "Roboto Medium", sans-serif;
+}
+
+
+
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+    font-family: "Roboto Medium", sans-serif;
+}
+
+tr {
+    border-bottom: 1px solid #060606;
+}
+
+td {
+    padding: 15px 0;
+}
+
+.font-extrabold {
+    font-weight: 800;
+}
+
+.text-3xl {
+    font-size: 1.5rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.pl-8 {
+    padding-left: 2rem;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+.items-center {
+    display: flex;
+    /* align-items: center; */
+    font-size: 1.5rem;
+    line-height: 1.3;    
+    font-family: "Roboto Medium", sans-serif;
+}
+
+.w-3 {
+    width: 12px;
+}
+
+.mr-3 {
+    margin-right: 0.75rem;
+}
+
+.page-break {
+    page-break-after: always;
+    break-after: page;
+}
+
+.header {
+    padding-left: 1.25rem;
+    /* px-5 */
+    padding-right: 1.25rem;
+    padding-top: 1rem;
+    /* py-4 */
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #6b7280;
+    /* border-gray-500 */
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    /* place-content-between */
+    align-items: center;
+    font-weight: 800;
+    /* font-extrabold */
+    font-size: 1.875rem;
+    /* text-3xl = 30px */
+}
+
+/* Versão de impressão */
+@media print {
+    .header-content {
+        font-size: 1.25rem;
+        /* text-xl = 20px */
+    }
+}
+
+.logo {
+    width: 8rem;
+    /* w-32 = 128px */
+}
+
+.qr {
+    width: 5rem;
+    /* w-20 = 80px */
+}

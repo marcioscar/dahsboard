@@ -1,23 +1,21 @@
-from datetime import datetime
-import streamlit as st
 import os
-import pandas as pd
 import locale
-import plotly.express as px
 import calendar
+from datetime import datetime
+
+import streamlit as st
+import pandas as pd
+import plotly.express as px
 from db import conexao
 
 def Dashboard():
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-    # extrato = pd.read_csv("dados/extrato.txt", sep=';', decimal=',')
-    # resultado_extrato = extrato.groupby("data")["valor"].sum().reset_index()
-    # resultado_extrato = resultado_extrato.rename(columns={"data": "DATA DE VENCIMENTO"})
+    
 
     if 'db' not in st.session_state:
-        db = conexao() 
+        db = conexao()
     else:
-        db = st.session_state.db   
-            
+        db = st.session_state.db
     receitas = db["receitas"]
     filtro = {
         "data": {"$gte": datetime(2025, 1, 1)}  # Data maior ou igual a 1 de janeiro de 2025
@@ -37,8 +35,6 @@ def Dashboard():
                 "lancamento": "quattor"  # Campo adicional fixo
             }
             dados_para_inserir.append(documento)
-
-        
         # 4. Inserir no MongoDB
         try:
             resultado = receitas.insert_many(dados_para_inserir)
@@ -222,7 +218,10 @@ def Dashboard():
         mes_ano_anterior = f"{nome_mes_anterior}-{ano_selecionado}"    
         mes_ano_atual = f"{nome_mes_atual}-{ano_selecionado}"
 
+    
+    
 
+    
     tot_mes = total_salarios[total_salarios["referencia"] == mes_ano_atual]["salario"]
     tot_mes_anterior = total_salarios[total_salarios["referencia"] == mes_ano_anterior]["salario"]
 
@@ -242,7 +241,8 @@ def Dashboard():
             return f"🔵 {(valor):,.2f}"  # Seta para baixo e valor absoluto
         return f"{valor:,.2f}"  # Caso seja zero, mantém normal
 
-
+    st.session_state.total_salarios_mes = total_salarios_mes
+    
 
     #diferenca de salários mes anterior
     df_merged_salario = sal_modalidades_filtrado.merge(sal_modalidades_filtrado_anterior, on='modalidade', how='left', suffixes=('_atual', '_anterior'))
@@ -447,6 +447,6 @@ with st.sidebar:
         format_func=lambda x: x[1],  # Mostrar apenas o nome do mês
         index=mes_atual - 1, key="mes_selecionado"
     )
-pg = st.navigation([ Dashboard, "Fluxo_de_Caixa.py", 'Despesas.py', 'Folha.py'])
+pg = st.navigation([ Dashboard, "Fluxo_de_Caixa.py", 'Despesas.py', 'Folha.py', 'Treinos.py'])
 
 pg.run()

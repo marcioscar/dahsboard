@@ -1,0 +1,5 @@
+{
+	"pylint.enabled": false,
+	"taipyStudio.config.mainPythonFile": "db.py",
+	"taipyStudio.gUI.elementsFilePaths": []
+}

@@ -13,6 +13,11 @@ matplotlib = "*"
 streamlit-extras = "*"
 streamlit = "*"
 itables = "*"
+jinja2 = "*"
+pdfkit = "*"
+pypdf = "*"
+pypdf2 = "*"
+weasyprint = "*"
 
 [dev-packages]
 ipykernel = "*"
